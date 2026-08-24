@@ -1,0 +1,58 @@
+# Copyright (c) 2026 the go-widgets/bricolint authors. All rights reserved.
+# Use of this source code is governed by a BSD-3-Clause license.
+#
+# The analyzer's own build/test/coverage gate.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.4"
+
+      - name: Gofmt
+        run: |
+          out=$(gofmt -l .)
+          [ -z "$out" ] || { echo "gofmt needed on:"; echo "$out"; exit 1; }
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Cross-build (6 arches + wasm)
+        run: |
+          set -e
+          for target in \
+            linux/amd64 linux/arm64 linux/riscv64 linux/ppc64le linux/s390x \
+            darwin/arm64 js/wasm; do
+            os=${target%/*}; arch=${target#*/}
+            echo "GOOS=$os GOARCH=$arch"
+            GOOS=$os GOARCH=$arch go build ./...
+          done
+
+      - name: Test with race and coverage
+        run: |
+          go test -race -covermode=atomic -coverprofile=cover.out ./...
+          go tool cover -func=cover.out
+
+      - name: Require 100% coverage of the analyzer package
+        run: |
+          pct=$(go test -covermode=set -coverprofile=pkg.out . >/dev/null && \
+                go tool cover -func=pkg.out | awk '/^total:/ {print $3}')
+          echo "analyzer package coverage: $pct"
+          [ "$pct" = "100.0%" ] || { echo "coverage below 100%"; exit 1; }

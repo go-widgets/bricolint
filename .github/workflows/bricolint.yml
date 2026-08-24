@@ -1,0 +1,59 @@
+# Copyright (c) 2026 the go-widgets/bricolint authors. All rights reserved.
+# Use of this source code is governed by a BSD-3-Clause license.
+#
+# Reusable workflow that guards a go-widgets application against new hand-drawn
+# UI. Call it from an app repository as a required status check:
+#
+#   jobs:
+#     bricolint:
+#       uses: go-widgets/bricolint/.github/workflows/bricolint.yml@main
+#
+# It installs the bricolint analyzer and runs it as a `go vet` tool over the
+# caller's packages, failing the job on any diagnostic.
+name: bricolint
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        description: "Go toolchain version to set up."
+        type: string
+        required: false
+        default: "1.26.4"
+      packages:
+        description: "Package pattern to check."
+        type: string
+        required: false
+        default: "./..."
+      working-directory:
+        description: "Directory to run the check in (for apps nested in a repo)."
+        type: string
+        required: false
+        default: "."
+      version:
+        description: "bricolint version to install (module query)."
+        type: string
+        required: false
+        default: "latest"
+
+permissions:
+  contents: read
+
+jobs:
+  bricolint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the calling repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ inputs.go-version }}
+
+      - name: Install bricolint
+        run: go install github.com/go-widgets/bricolint/cmd/bricolint@${{ inputs.version }}
+
+      - name: Guard against hand-drawn UI (go vet -vettool)
+        working-directory: ${{ inputs.working-directory }}
+        run: go vet -vettool="$(go env GOPATH)/bin/bricolint" ${{ inputs.packages }}
