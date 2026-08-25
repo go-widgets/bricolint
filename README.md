@@ -2,7 +2,6 @@
 
 [![ci](https://github.com/go-widgets/bricolint/actions/workflows/ci.yml/badge.svg)](https://github.com/go-widgets/bricolint/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/go-widgets/bricolint.svg)](https://pkg.go.dev/github.com/go-widgets/bricolint)
-[![Go Report Card](https://goreportcard.com/badge/github.com/go-widgets/bricolint)](https://goreportcard.com/report/github.com/go-widgets/bricolint)
 [![License: BSD-3-Clause](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](LICENSE)
 
 A [`go/analysis`](https://pkg.go.dev/golang.org/x/tools/go/analysis) analyzer that
