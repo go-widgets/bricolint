@@ -19,7 +19,7 @@ on:
         description: "Go toolchain version to set up."
         type: string
         required: false
-        default: "1.26.4"
+        default: "1.27.1"
       packages:
         description: "Package pattern to check."
         type: string
